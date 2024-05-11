@@ -7,11 +7,12 @@
     <version>0.10.0</version>
     <packaging>pom</packaging>
 
-    <name>gephi-plugins</name>
+    <name>Pathfinder-Plugin</name>
     
     <!-- List of modules -->
     <modules>
         <!-- Add here the paths of all modules (e.g. <module>modules/MyModule</module>) -->
+        <module>modules/PathfinderPlugin</module>
     </modules>
     
     <!-- Properties -->

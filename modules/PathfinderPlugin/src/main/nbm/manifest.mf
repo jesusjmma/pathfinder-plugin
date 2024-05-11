@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+OpenIDE-Module-Name: Pathfinder
+OpenIDE-Module-Requires: org.openide.windows.WindowManager
+OpenIDE-Module-Short-Description: Pathfinder algorithm
+OpenIDE-Module-Long-Description: Pathfinder algorithm
+OpenIDE-Module-Display-Category: Tool
+OpenIDE-Module-Localizing-Bundle: net/jesusjmma/pathfinder/Bundle.properties
