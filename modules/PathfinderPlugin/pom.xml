@@ -46,6 +46,21 @@
             <artifactId>org-netbeans-modules-settings</artifactId>
             <version>RELEASE210</version>
         </dependency>
+        <dependency>
+            <groupId>org.gephi</groupId>
+            <artifactId>filters-plugin</artifactId>
+            <version>0.10.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.gephi</groupId>
+            <artifactId>filters-api</artifactId>
+            <version>0.10.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.gephi</groupId>
+            <artifactId>graph-api</artifactId>
+            <version>0.10.2-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -73,6 +88,14 @@
             <id>oss-sonatype</id>
             <name>oss-sonatype</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>mi-repositorio-maven-local</id>
+            <name>mi-repositorio-maven-local</name>
+            <url>file://${user.home}/.m2/repository</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>

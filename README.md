@@ -26,7 +26,7 @@ This is an example of what this process will ask:
         Version (e.g. 1.0.0): 1.0.0
         Directory name (e.g MyPlugin): MyPlugin
         Branding name (e.g My Plugin): My Plugin
-        Category (e.g Layout, Filter, etc.): Tool
+        Category (e.g Layout, Filter, etc.): Filter
         Author: My Name
         Author email (optional):
         Author URL (optional):
