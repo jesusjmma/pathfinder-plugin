@@ -28,9 +28,9 @@ import org.openide.util.NbBundle.Messages;
         //iconBase="SET/PATH/TO/ICON/HERE",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "properties", openAtStartup = true)
+@TopComponent.Registration(mode = "filtersmode", openAtStartup = false)
 @ActionID(category = "Window", id = "pathfinderwindow.PFTopComponent")
-@ActionReference(path = "Menu/Window" /*, position = 333 */)
+@ActionReference(path = "Menu/Window", position = 3000)
 @TopComponent.OpenActionRegistration(
         displayName = "#expression.gephi_menu_item.title",
         preferredID = "PFTopComponent"
