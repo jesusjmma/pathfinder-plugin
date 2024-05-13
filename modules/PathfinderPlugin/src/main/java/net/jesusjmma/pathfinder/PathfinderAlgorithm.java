@@ -50,7 +50,7 @@ public class PathfinderAlgorithm {
         return newMatrix;
     }
     
-    private static int fastPathfinder(Graph G, int q, int r){
+    private static int fastPathfinder(Graph G, int r){
         int n = G.getNodeCount();
         List<Node> nodes = new ArrayList<>(Arrays.asList(G.getNodes().toArray()));
         
@@ -99,7 +99,7 @@ public class PathfinderAlgorithm {
         int n = graph.getNodeCount();
         int q = n-1;
         int r = 0;
-        int fastPathfinderEdgesCount = fastPathfinder(graph, q, r);
+        int fastPathfinderEdgesCount = fastPathfinder(graph, r);
         log.write("Número de aristas con fastPF: ", fastPathfinderEdgesCount);
         return true;
     }
