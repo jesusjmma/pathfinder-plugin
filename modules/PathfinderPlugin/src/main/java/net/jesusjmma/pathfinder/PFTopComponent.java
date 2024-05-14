@@ -4,10 +4,13 @@
  */
 package net.jesusjmma.pathfinder;
 
+import java.awt.Frame;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
-import net.jesusjmma.pathfinder.PathfinderAlgorithm.Algoritmos;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
+import net.jesusjmma.pathfinder.PathfinderAlgorithm.Algoritmo;
 import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.GraphController;
 import org.gephi.graph.api.GraphModel;
@@ -31,7 +34,7 @@ import org.openide.util.NbBundle.Messages;
         //iconBase="SET/PATH/TO/ICON/HERE",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "filtersmode", openAtStartup = false)
+@TopComponent.Registration(mode = "filtersmode", openAtStartup = true)
 @ActionID(category = "Window", id = "pathfinderwindow.PFTopComponent")
 @ActionReference(path = "Menu/Window", position = 3000)
 @TopComponent.OpenActionRegistration(
@@ -71,6 +74,7 @@ public final class PFTopComponent extends TopComponent {
         jLabel4 = new javax.swing.JLabel();
         jSpinner2 = new javax.swing.JSpinner();
         jCheckBox2 = new javax.swing.JCheckBox();
+        jCheckBox3 = new javax.swing.JCheckBox();
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "Seleccione el algoritmo:");
 
@@ -82,7 +86,7 @@ public final class PFTopComponent extends TopComponent {
         });
 
         List<String> algoritmos = new ArrayList<String>();
-        for (Algoritmos alg : Algoritmos.values()){
+        for (Algoritmo alg : Algoritmo.values()){
             algoritmos.add(alg.toString());
         }
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<String>(algoritmos.toArray(new String[0])));
@@ -125,6 +129,13 @@ public final class PFTopComponent extends TopComponent {
             }
         });
 
+        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox3, "Tomar pesos de los ejes como grados de relación");
+        jCheckBox3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox3ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -134,25 +145,31 @@ public final class PFTopComponent extends TopComponent {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addComponent(jComboBox1, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jButton1))
+                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(15, 15, 15))
             .addGroup(layout.createSequentialGroup()
-                .addGap(29, 29, 29)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(36, 36, 36)
-                        .addComponent(jCheckBox1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(29, 29, 29)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jButton1)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(36, 36, 36)
+                                    .addComponent(jCheckBox1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(36, 36, 36)
+                                    .addComponent(jCheckBox2)))))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(36, 36, 36)
-                        .addComponent(jCheckBox2)))
-                .addContainerGap(158, Short.MAX_VALUE))
+                        .addGap(14, 14, 14)
+                        .addComponent(jCheckBox3)))
+                .addContainerGap(17, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -173,20 +190,28 @@ public final class PFTopComponent extends TopComponent {
                     .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4)
                     .addComponent(jCheckBox2))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jCheckBox3)
+                .addGap(15, 15, 15)
                 .addComponent(jButton1)
-                .addContainerGap(95, Short.MAX_VALUE))
+                .addContainerGap(64, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    
+    // BOTÓN PARA EJECUTAR
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         
+        GraphModel graphModel = Lookup.getDefault().lookup(GraphController.class).getGraphModel();
+        Graph graph = graphModel.getGraph();
+        int n = graph.getNodeCount();
+        
         String selection = jComboBox1.getSelectedItem().toString();
-        Algoritmos algorithm = Algoritmos.search(selection);
+        Algoritmo algorithm = Algoritmo.search(selection);
         
         int q;
         if (jCheckBox2.isSelected()){
-            q = 0;
+            q = n-1;
         }
         else{
             q = ((Number)jSpinner2.getValue()).intValue();
@@ -200,10 +225,29 @@ public final class PFTopComponent extends TopComponent {
             r = ((Number)jSpinner1.getValue()).intValue();
         }
         
-        GraphModel graphModel = Lookup.getDefault().lookup(GraphController.class).getGraphModel();
-        Graph graph = graphModel.getGraph();
+        PathfinderAlgorithm Pathfinder = new PathfinderAlgorithm();
+
+        boolean grados_de_relacion = jCheckBox3.isSelected();
         
-        boolean estado = PathfinderAlgorithm.compute(algorithm, graph, q, r);
+        boolean column_calculated = PathfinderAlgorithm.checkColumn(graphModel.getEdgeTable(), algorithm, q, r);
+        int calculate = 1;
+        
+        final Log log = new Log("/home/jesusjmma/Desktop/log_gephi.txt");
+        log.write("column_calculated: "+String.valueOf(column_calculated));
+                
+        if (column_calculated){
+            calculate = 0;
+            log.write("el frame este raro: "+(String.valueOf((Frame) SwingUtilities.windowForComponent(this))));
+            OkCancelDialog popUpWindow = new OkCancelDialog((Frame) SwingUtilities.windowForComponent(this), true);
+            popUpWindow.setLocationRelativeTo(null);
+            popUpWindow.setVisible(true);
+            calculate = popUpWindow.getReturnStatus();
+            log.write("calculate: "+String.valueOf(calculate));
+        }
+        
+        if (calculate == 1){
+            boolean estado = Pathfinder.compute(algorithm, graph, q, r, grados_de_relacion);
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
@@ -227,26 +271,36 @@ public final class PFTopComponent extends TopComponent {
     private void jSpinner2StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinner2StateChanged
         GraphModel graphModel = Lookup.getDefault().lookup(GraphController.class).getGraphModel();
         if (graphModel == null){
-            jSpinner2.setEnabled(false);
             jCheckBox2.setSelected(true);
+            jSpinner2.setEnabled(false);
             return;
         }
         int n = graphModel.getGraph().getNodeCount();
         
-        if (n < ((Number) jSpinner2.getValue()).intValue()){
-            jSpinner2.setEnabled(false);
+        if (n <= ((Number) jSpinner2.getValue()).intValue()){
             jCheckBox2.setSelected(true);
+            jSpinner2.setEnabled(false);
         }
         
         int max_q = n-1;
-        int actual = ((Number) jSpinner2.getValue()).intValue();
-        jSpinner2.setModel(new javax.swing.SpinnerNumberModel(actual+3, 1, max_q, 1));
+        int actual_max_q = ((Integer) ((SpinnerNumberModel) jSpinner2.getModel()).getMaximum()).intValue();
+        System.out.print("actual_max_q = "+String.valueOf(actual_max_q));
+        
+        if (max_q != actual_max_q){
+            int actual_value = ((Number) jSpinner2.getValue()).intValue();
+            jSpinner2.setModel(new javax.swing.SpinnerNumberModel(actual_value, 1, max_q, 1));
+        }
     }//GEN-LAST:event_jSpinner2StateChanged
+
+    private void jCheckBox3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox3ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jCheckBox3ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JCheckBox jCheckBox2;
+    private javax.swing.JCheckBox jCheckBox3;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

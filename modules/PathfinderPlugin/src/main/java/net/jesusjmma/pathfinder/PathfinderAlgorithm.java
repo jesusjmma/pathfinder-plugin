@@ -18,7 +18,7 @@ public class PathfinderAlgorithm {
     
     private static final Log log = new Log("/home/jesusjmma/Desktop/log_gephi.txt");
     
-    static enum Algoritmos{
+    static enum Algoritmo{
         fastPF("Fast Pathfinder"),
         //PF2("Nombre del algoritmo PF2"),
         //PF3("Nombre del algoritmo PF3"),
@@ -28,7 +28,7 @@ public class PathfinderAlgorithm {
         
         private final String name;
         
-        private Algoritmos(final String text){
+        private Algoritmo(final String text){
             this.name = text;
         }
         
@@ -37,17 +37,17 @@ public class PathfinderAlgorithm {
             return name;
         }
         
-        public static Algoritmos search(String text){
+        public static Algoritmo search(String text){
             
-            for (Algoritmos alg : Algoritmos.values()){
+            for (Algoritmo alg : Algoritmo.values()){
                 if (alg.name == text)
                     return alg;
             }
-            return Algoritmos.fastPF;
+            return Algoritmo.fastPF;
         }
     }
     
-    private static double[][] createMatrix(Graph G, List<Node> nodes){
+    private double[][] createMatrix(Graph G, List<Node> nodes, boolean invertida){
         int n = G.getNodeCount();
         Edge[] edges = G.getEdges().toArray();
         
@@ -59,17 +59,29 @@ public class PathfinderAlgorithm {
             boolean edge_directed = edge.isDirected();
             
             if (edge_directed){
-                matrix [source_pos][target_pos] = edge_weight;
+                if (invertida){
+                    matrix [source_pos][target_pos] = 1/edge_weight;
+                }
+                else{
+                    matrix [source_pos][target_pos] = edge_weight;
+                }
             }
             else{
-                matrix [source_pos][target_pos] = edge_weight;
-                matrix [target_pos][source_pos] = edge_weight;
+                if (invertida){
+                    matrix [source_pos][target_pos] = 1/edge_weight;
+                    matrix [target_pos][source_pos] = 1/edge_weight;
+                }
+                else{
+                    matrix [source_pos][target_pos] = edge_weight;
+                    matrix [target_pos][source_pos] = edge_weight;
+                }
             }
         }
+        
         return matrix;
     }
     
-    private static double [][] cloneMatrix(double[][] matrix){
+    private double [][] cloneMatrix(double[][] matrix){
         int n = matrix.length;
         int m = matrix[0].length;
         double [][] newMatrix = new double[n][m];
@@ -79,14 +91,58 @@ public class PathfinderAlgorithm {
         return newMatrix;
     }
     
-    private static int fastPathfinder(Graph G, int q, int r){
+    static boolean checkColumn(Table T, Algoritmo alg, int q, int r){
+        String r_string;
+        if (r == 0){
+            r_string = "∞";
+        }
+        else{
+            r_string = String.valueOf(r);
+        }
+        
+        String column_id = alg.name()+"_q"+String.valueOf(q)+"_r"+r_string;        
+        
+        return T.hasColumn(column_id);
+    }
+    
+    private String createColumn(Table T, Algoritmo alg, int q, int r){
+        String r_string;
+        if (r == 0){
+            r_string = "∞";
+        }
+        else{
+            r_string = String.valueOf(r);
+        }
+        
+        String column_id = alg.name()+"_q"+String.valueOf(q)+"_r"+r_string;
+        String column_name = alg.toString()+" q("+String.valueOf(q)+") r("+r_string+")";
+        
+        if (T.hasColumn(column_id)){
+            T.removeColumn(alg.name());
+            log.write("Columna borrada");
+        }
+        
+        if (T.hasColumn(column_id)){
+            T.removeColumn(column_id);
+            log.write("Columna borrada");
+        }
+        
+        
+        T.addColumn(column_id, column_name, Boolean.class, Origin.DATA, Boolean.FALSE, true);
+        log.write("Columna creada");
+        return column_id;
+    }
+    
+    // ALGORITMOS
+    
+    private int fastPathfinder(Graph G, int q, int r, boolean invertida){
         int n = G.getNodeCount();
         List<Node> nodes = new ArrayList<>(Arrays.asList(G.getNodes().toArray()));
         
-        double [][] W = createMatrix(G, nodes);
+        double [][] W = createMatrix(G, nodes, invertida);
         double[][] D = cloneMatrix(W);
         
-        for (int k=0; k<n; k++){
+        for (int k=0; k<q; k++){
             for (int i=0; i<n; i++){
                 for (int j=0; j<n; j++){
                     if (k!=i && k!=j && i!=j && D[i][k]>0.0 && D[k][j]>0.0 && D[i][j]>0.0){
@@ -111,33 +167,27 @@ public class PathfinderAlgorithm {
         int target_pos;
         Table table = edges[0].getTable();
         
-        if (table.hasColumn(Algoritmos.fastPF.name())){
-            table.removeColumn(Algoritmos.fastPF.name());
-            log.write("Columna borrada");
-        }
-        table.addColumn(Algoritmos.fastPF.name(), Algoritmos.fastPF.toString(), Boolean.class, Origin.DATA, Boolean.FALSE, true);
-        log.write("Columna creada");
+        String column_id = createColumn(table, Algoritmo.fastPF, q, r);
         
         for (Edge edge: edges) {
             source_pos = nodes.indexOf(edge.getSource());
             target_pos = nodes.indexOf(edge.getTarget());
             
             if (D[source_pos][target_pos] == W[source_pos][target_pos] && source_pos!=target_pos && D[source_pos][target_pos]>0.0){
-                edge.setAttribute("fastPF", true);
+                edge.setAttribute(column_id, true);
                 pfEdgesCount++;
             }
         }
         return pfEdgesCount;
     }
     
-    public static boolean compute(Algoritmos algorithm, Graph graph, int q, int r){
-        int n = graph.getNodeCount();
+    boolean compute(Algoritmo algorithm, Graph graph, int q, int r, boolean invertida){
         
         int edgesCount=-1;
         
         switch(algorithm){
             case fastPF:
-                edgesCount = fastPathfinder(graph, q, r);
+                edgesCount = fastPathfinder(graph, q, r, invertida);
                 break;
         }
         
