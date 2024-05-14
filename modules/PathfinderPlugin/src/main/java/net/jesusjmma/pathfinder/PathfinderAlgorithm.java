@@ -18,6 +18,35 @@ public class PathfinderAlgorithm {
     
     private static final Log log = new Log("/home/jesusjmma/Desktop/log_gephi.txt");
     
+    static enum Algoritmos{
+        fastPF("Fast Pathfinder"),
+        //PF2("Nombre del algoritmo PF2"),
+        //PF3("Nombre del algoritmo PF3"),
+        //PF4("Nombre del algoritmo PF4"),
+        //Termina con un punto y coma
+        ;
+        
+        private final String name;
+        
+        private Algoritmos(final String text){
+            this.name = text;
+        }
+        
+        @Override
+        public String toString() {
+            return name;
+        }
+        
+        public static Algoritmos search(String text){
+            
+            for (Algoritmos alg : Algoritmos.values()){
+                if (alg.name == text)
+                    return alg;
+            }
+            return Algoritmos.fastPF;
+        }
+    }
+    
     private static double[][] createMatrix(Graph G, List<Node> nodes){
         int n = G.getNodeCount();
         Edge[] edges = G.getEdges().toArray();
@@ -50,7 +79,7 @@ public class PathfinderAlgorithm {
         return newMatrix;
     }
     
-    private static int fastPathfinder(Graph G, int r){
+    private static int fastPathfinder(Graph G, int q, int r){
         int n = G.getNodeCount();
         List<Node> nodes = new ArrayList<>(Arrays.asList(G.getNodes().toArray()));
         
@@ -81,7 +110,13 @@ public class PathfinderAlgorithm {
         int source_pos;
         int target_pos;
         Table table = edges[0].getTable();
-        table.addColumn("fastPF", "Fast Pathfinder", Boolean.class, Origin.DATA, Boolean.FALSE, true);
+        
+        if (table.hasColumn(Algoritmos.fastPF.name())){
+            table.removeColumn(Algoritmos.fastPF.name());
+            log.write("Columna borrada");
+        }
+        table.addColumn(Algoritmos.fastPF.name(), Algoritmos.fastPF.toString(), Boolean.class, Origin.DATA, Boolean.FALSE, true);
+        log.write("Columna creada");
         
         for (Edge edge: edges) {
             source_pos = nodes.indexOf(edge.getSource());
@@ -95,12 +130,18 @@ public class PathfinderAlgorithm {
         return pfEdgesCount;
     }
     
-    public static boolean compute(Graph graph){
+    public static boolean compute(Algoritmos algorithm, Graph graph, int q, int r){
         int n = graph.getNodeCount();
-        int q = n-1;
-        int r = 0;
-        int fastPathfinderEdgesCount = fastPathfinder(graph, r);
-        log.write("Número de aristas con fastPF: ", fastPathfinderEdgesCount);
+        
+        int edgesCount=-1;
+        
+        switch(algorithm){
+            case fastPF:
+                edgesCount = fastPathfinder(graph, q, r);
+                break;
+        }
+        
+        log.write("Número de aristas con "+algorithm.name+": ", edgesCount);
         return true;
     }
 }
