@@ -93,6 +93,11 @@ public final class PFTopComponent extends TopComponent {
         jComboBox1.setMinimumSize(new java.awt.Dimension(40, 24));
         jComboBox1.setName(""); // NOI18N
         jComboBox1.setPreferredSize(new java.awt.Dimension(70, 24));
+        jComboBox1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBox1ActionPerformed(evt);
+            }
+        });
 
         jSpinner1.setModel(new javax.swing.SpinnerNumberModel(1, 1, 99, 1));
         jSpinner1.setEnabled(false);
@@ -264,7 +269,15 @@ public final class PFTopComponent extends TopComponent {
             jSpinner2.setEnabled(false);
         }
         else{
-            jSpinner2.setEnabled(true);
+            String selection = jComboBox1.getSelectedItem().toString();
+            Algoritmo algorithm = Algoritmo.search(selection);
+            if (!algorithm.qAdmisible()){
+                jCheckBox2.setSelected(true);
+                jSpinner2.setEnabled(false);
+            }
+            else{
+                jSpinner2.setEnabled(true);
+            }
         }
     }//GEN-LAST:event_jCheckBox2ActionPerformed
 
@@ -295,6 +308,16 @@ public final class PFTopComponent extends TopComponent {
     private void jCheckBox3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox3ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jCheckBox3ActionPerformed
+
+    private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
+        String selection = jComboBox1.getSelectedItem().toString();
+        Algoritmo algorithm = Algoritmo.search(selection);
+        
+        if (!algorithm.qAdmisible()){
+            jCheckBox2.setSelected(true);
+            jSpinner2.setEnabled(false);
+        }
+    }//GEN-LAST:event_jComboBox1ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;

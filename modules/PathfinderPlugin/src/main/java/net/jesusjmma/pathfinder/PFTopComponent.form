@@ -136,6 +136,9 @@
           <Dimension value="[70, 24]"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jComboBox1ActionPerformed"/>
+      </Events>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_InitCodePre" type="java.lang.String" value="List&lt;String&gt; algoritmos = new ArrayList&lt;String&gt;();&#xa;for (Algoritmo alg : Algoritmo.values()){&#xa;    algoritmos.add(alg.toString());&#xa;}"/>
         <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
