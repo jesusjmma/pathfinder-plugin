@@ -19,23 +19,25 @@ public class PathfinderAlgorithm {
     private static final Log log = new Log("/home/jesusjmma/Desktop/log_gephi.txt");
     
     static enum Algoritmo{
-        originalPF("Original Pathfinder", true),
-        binaryPF("Binary Pathfinder", true),
-        fastPF("Fast Pathfinder", false),
-        fastPFmodified("Fast Pathfinder Modified", true),
-        //PF2("Nombre del algoritmo PF2"),
-        //PF3("Nombre del algoritmo PF3"),
-        //PF4("Nombre del algoritmo PF4"),
+        originalPF("Original Pathfinder", true, true),
+        binaryPF("Binary Pathfinder", true, true),
+        fastPF("Fast Pathfinder", false, true),
+        fastPFmodified("Fast Pathfinder Modified", true, true),
+        //MSTPathfinderPractical("MST-Pathfinder Practical", false, false),
+        //MSTPathfinderTheorical("MST-Pathfinder Theorical", false, false),
+        //PF1("Nombre del algoritmo PF2", true, true),
+        //PF2("Nombre del algoritmo PF2", true, true),
         //Termina con un punto y coma
         ;
         
         private final String name;
         private final boolean qValues;
+        private final boolean directedOption;
         
-        private Algoritmo(final String text, final boolean q){
+        private Algoritmo(final String text, final boolean q, final boolean directed){
             this.name = text;
             this.qValues = q;
-            
+            this.directedOption = directed;
         }
         
         @Override
@@ -45,6 +47,10 @@ public class PathfinderAlgorithm {
         
         public boolean qAdmisible(){
             return qValues;
+        }
+        
+        public boolean directedAdmisible(){
+            return directedOption;
         }
         
         public static Algoritmo search(String text){
@@ -163,7 +169,9 @@ public class PathfinderAlgorithm {
         return d;
     }
     
-    // ALGORITMOS
+    //////º////////////////
+    //    ALGORITMOS    //
+    //////////////////////
     
     private int originalPathfinder (Graph G, int n, int q, int r, boolean invertida){
         List<Node> nodes = new ArrayList<>(Arrays.asList(G.getNodes().toArray()));
@@ -456,15 +464,19 @@ public class PathfinderAlgorithm {
         return pfEdgesCount;
     }
     
-    private int MSTPathfinderPractical(Graph G, int n, int q, int r, boolean invertida){
+    private int MSTPathfinderPractical (Graph G, int n, int q, int r, boolean invertida){
         return -1;
     }
     
-    private int MSTPathfinderTheorical(Graph G, int n, int q, int r, boolean invertida){
+    private int MSTPathfinderTheorical (Graph G, int n, int q, int r, boolean invertida){
         return -1;
     }
+    
+    //////////////////////
+    //  FIN ALGORITMOS  //
+    //////////////////////
             
-    boolean compute(Algoritmo algorithm, Graph graph, int q, int r, boolean invertida){
+    boolean compute (Algoritmo algorithm, Graph graph, int q, int r, boolean invertida){
         
         int edgesCount=-1;
         
