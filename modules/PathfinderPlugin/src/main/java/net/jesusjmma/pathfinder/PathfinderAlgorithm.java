@@ -20,7 +20,9 @@ public class PathfinderAlgorithm {
     
     static enum Algoritmo{
         originalPF("Original Pathfinder", true),
+        binaryPF("Binary Pathfinder", true),
         fastPF("Fast Pathfinder", false),
+        fastPFmodified("Fast Pathfinder Modified", true),
         //PF2("Nombre del algoritmo PF2"),
         //PF3("Nombre del algoritmo PF3"),
         //PF4("Nombre del algoritmo PF4"),
@@ -54,8 +56,25 @@ public class PathfinderAlgorithm {
             return Algoritmo.fastPF;
         }
     }
-    
-    private double[][] createMatrix(Graph G, List<Node> nodes, boolean invertida){
+    ///*
+    private void printMatrix (double[][] matrix){
+        int[] maxSizes = new int[matrix[0].length];
+        for (int col = 0; col < matrix[0].length; col++) {
+            for (double[] row : matrix) {
+                maxSizes[col] = Math.max(maxSizes[col], Double.toString(row[col]).length());
+            }
+        }
+
+        for (double[] row : matrix) {
+            StringBuilder sb = new StringBuilder();
+            for (int col = 0; col < row.length; col++) {
+                sb.append(String.format("%" + maxSizes[col] + "s", row[col])).append(" ");
+            }
+            log.write(sb.toString().trim());
+        }
+    }
+    //*/
+    private double[][] createMatrix (Graph G, List<Node> nodes, boolean invertida){
         int n = G.getNodeCount();
         Edge[] edges = G.getEdges().toArray();
         
@@ -85,11 +104,10 @@ public class PathfinderAlgorithm {
                 }
             }
         }
-        
         return matrix;
     }
     
-    private double [][] cloneMatrix(double[][] matrix){
+    private double [][] cloneMatrix (double[][] matrix){
         int n = matrix.length;
         int m = matrix[0].length;
         double [][] newMatrix = new double[n][m];
@@ -99,7 +117,7 @@ public class PathfinderAlgorithm {
         return newMatrix;
     }
     
-    static boolean checkColumn(Table T, Algoritmo alg, int q, int r){
+    static boolean checkColumn (Table T, Algoritmo alg, int q, int r){
         String r_string;
         if (r == 0){
             r_string = "∞";
@@ -113,7 +131,7 @@ public class PathfinderAlgorithm {
         return T.hasColumn(column_id);
     }
     
-    private String createColumn(Table T, Algoritmo alg, int q, int r){
+    private String createColumn (Table T, Algoritmo alg, int q, int r){
         String r_string;
         if (r == 0){
             r_string = "∞";
@@ -127,12 +145,10 @@ public class PathfinderAlgorithm {
         
         if (T.hasColumn(column_id)){
             T.removeColumn(column_id);
-            log.write("Columna borrada");
         }
         
         
         T.addColumn(column_id, column_name, Boolean.class, Origin.DATA, Boolean.FALSE, true);
-        log.write("Columna creada");
         return column_id;
     }
     
@@ -142,9 +158,8 @@ public class PathfinderAlgorithm {
                 d = Math.max(a, b);
             }
             else{
-                d = Math.pow((Math.pow(a, r) + Math.pow(b, r)),(1/r));
-            }
-        
+                d = Math.pow((Math.pow(a, r) + Math.pow(b, r)),(1.0/r));
+            }        
         return d;
     }
     
@@ -217,25 +232,130 @@ public class PathfinderAlgorithm {
     
     private int binaryPathfinder (Graph G, int n, int q, int r, boolean invertida){
         List<Node> nodes = new ArrayList<>(Arrays.asList(G.getNodes().toArray()));
-        
         double [][] W = createMatrix(G, nodes, invertida);
-        double [][] D = cloneMatrix(W);
         
         int i = 1;
         int nq = 0;
         
+        double [][] D = cloneMatrix(W);
         
+        double [][] D_q = new double [n][n];
+        for (int l=0; l<n; l++){
+            for (int j=0; j<n; j++){
+                D_q[l][j] = Double.MAX_VALUE;
+            }
+        }
         
-        return -1;
+        double [][] D_2 = new double[n][n];
+        
+        double min;
+        double local_min;
+        if (q%2 == 1){
+            for (int l=0; l<n; l++){
+                for (int j=0; j<n; j++){
+                    if (D_q[l][j]>0.0 && D[l][j]>0.0){
+                        min = Math.min(D_q[l][j], D[l][j]);
+                    }
+                    else{
+                        min = Math.max(D_q[l][j], D[l][j]);
+                    }
+                    for (int m=0; m<n; m++){
+                        if (D_q[l][m]>0.0 && D[m][j]>0.0){
+                            if (min > 0.0){
+                                min = Math.min(min, minkowskiDistance(D_q[l][m], D[m][j], r));
+                            }
+                            else{
+                                min = minkowskiDistance(D_q[l][m], D[m][j], r);
+                            }
+                        }
+                    }
+                    D_2[l][j] = min;
+                }
+            }
+        }
+        
+        D_q = Arrays.stream(D_2).map(double[]::clone).toArray(double[][]::new);
+        
+        nq = 1;
+        
+        double [][] D_2i = new double[n][n];
+        while (2*i <= q){
+            for (int l=0; l<n; l++){
+                for (int j=0; j<n; j++){
+                    min = D[l][j];
+                    for (int m=0; m<n; m++){
+                        if (D[l][m]>0.0 && D[m][j]>0.0){
+                            if (min > 0.0){
+                                min = Math.min(min, minkowskiDistance(D[l][m], D[m][j], r));
+                            }
+                            else{
+                                min = minkowskiDistance(D_q[l][m], D[m][j], r);
+                            }
+                        }
+                    }
+                    D_2[l][j] = min;
+                }
+            }
+            D = Arrays.stream(D_2).map(double[]::clone).toArray(double[][]::new);
+            if ((q-nq)%(4*i) > 0){
+                for (int l=0; l<n; l++){
+                    for (int j=0; j<n; j++){
+                        if (D_q[l][j]>0.0 && D[l][j]>0.0){
+                            min = Math.min(D_q[l][j], D[l][j]);
+                        }
+                        else{
+                            min = Math.max(D_q[l][j], D[l][j]);
+                        }
+                        for (int m=0; m<n; m++){
+                            if (D_q[l][m]>0.0 && D[m][j]>0.0){
+                                if (min > 0.0){
+                                    min = Math.min(min, minkowskiDistance(D_q[l][m], D[m][j], r));
+                                }
+                                else{
+                                    min = minkowskiDistance(D_q[l][m], D[m][j], r);
+                                }
+                            }
+                        }
+                        D_2[l][j] = min;
+                    }
+                }
+                D_q = Arrays.stream(D_2).map(double[]::clone).toArray(double[][]::new);
+                nq = nq + 2*i;
+            }
+            i = 2*i;
+        }
+        
+        Edge[] edges = G.getEdges().toArray();
+        int pfEdgesCount = 0;
+        
+        int source_pos;
+        int target_pos;
+        Table table = edges[0].getTable();
+        
+        String column_id = createColumn(table, Algoritmo.binaryPF, q, r);
+        
+        for (Edge edge: edges) {
+            source_pos = nodes.indexOf(edge.getSource());
+            target_pos = nodes.indexOf(edge.getTarget());
+            
+            if (D_q[source_pos][target_pos] == W[source_pos][target_pos] && source_pos!=target_pos && D_q[source_pos][target_pos]>0.0){
+                edge.setAttribute(column_id, true);
+                pfEdgesCount++;
+            }
+        }
+        
+        return pfEdgesCount;
     }
     
-    private int fastPathfinder(Graph G, int n, int r, boolean invertida){
+    private int fastPathfinder (Graph G, int n, int q, int r, boolean invertida){
+        q = n-1;   // Esta versión solo es válida para q=n-1. Aquí lo forzamos por si no se ha puesto correctamente antes.
+        
         List<Node> nodes = new ArrayList<>(Arrays.asList(G.getNodes().toArray()));
         
         double [][] W = createMatrix(G, nodes, invertida);
         double [][] D = cloneMatrix(W);
         
-        for (int k=0; k<n; k++){
+        for (int k=0; k<q; k++){
             for (int i=0; i<n; i++){
                 for (int j=0; j<n; j++){
                     if (i!=j && k!=i && k!=j && D[i][k]>0.0 && D[k][j]>0.0){
@@ -253,13 +373,12 @@ public class PathfinderAlgorithm {
         
         Edge[] edges = G.getEdges().toArray();
         int pfEdgesCount = 0;
-        log.write("Cantidad de ejes: ",edges.length);
         
         int source_pos;
         int target_pos;
         Table table = edges[0].getTable();
         
-        String column_id = createColumn(table, Algoritmo.fastPF, n-1, r);
+        String column_id = createColumn(table, Algoritmo.fastPF, q, r);
         
         for (Edge edge: edges) {
             source_pos = nodes.indexOf(edge.getSource());
@@ -273,6 +392,78 @@ public class PathfinderAlgorithm {
         return pfEdgesCount;
     }
     
+    private int fastPathfinderModified (Graph G, int n, int q, int r, boolean invertida){
+        List<Node> nodes = new ArrayList<>(Arrays.asList(G.getNodes().toArray()));
+        
+        double [][] W = createMatrix(G, nodes, invertida);
+        double [][] D = cloneMatrix(W);
+        int [][] steps = new int[n][n];
+        
+        for (int i=0; i<n; i++){
+            for (int j=0; j<n; j++){
+                if (i==j){
+                    steps[i][j] = 0;
+                }
+                else{
+                    steps[i][j] = 1;
+                }
+            }
+        }
+        
+        for (int k=0; k<n; k++){
+            for (int i=0; i<n; i++){
+                for (int j=0; j<n; j++){
+                    if (k!=i && k!=j && D[i][k]>0.0 && D[k][j]>0.0){
+                        if (q >= 2 && W[i][k]>0.0 && W[k][j]>0.0){
+                            double d;
+                            d = minkowskiDistance(W[i][k], W[k][j], r);
+                            if (d < D[i][j]){
+                                D[i][j] = d;
+                                steps[i][j] = 2;
+                            }
+                        }
+                        if (q >= steps[i][k]+steps[k][j] && D[i][k]>0.0 && D[k][j]>0.0){
+                            double d;
+                            d = minkowskiDistance(D[i][k], D[k][j], r);
+                            if (d < D[i][j]){
+                                D[i][j] = d;
+                                steps[i][j] = steps[i][k] + steps[k][j];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        Edge[] edges = G.getEdges().toArray();
+        int pfEdgesCount = 0;
+        
+        int source_pos;
+        int target_pos;
+        Table table = edges[0].getTable();
+        
+        String column_id = createColumn(table, Algoritmo.fastPFmodified, q, r);
+        
+        for (Edge edge: edges) {
+            source_pos = nodes.indexOf(edge.getSource());
+            target_pos = nodes.indexOf(edge.getTarget());
+            
+            if (D[source_pos][target_pos] == W[source_pos][target_pos] && source_pos!=target_pos && W[source_pos][target_pos]!=0.0){
+                edge.setAttribute(column_id, true);
+                pfEdgesCount++;
+            }
+        }
+        return pfEdgesCount;
+    }
+    
+    private int MSTPathfinderPractical(Graph G, int n, int q, int r, boolean invertida){
+        return -1;
+    }
+    
+    private int MSTPathfinderTheorical(Graph G, int n, int q, int r, boolean invertida){
+        return -1;
+    }
+            
     boolean compute(Algoritmo algorithm, Graph graph, int q, int r, boolean invertida){
         
         int edgesCount=-1;
@@ -283,8 +474,14 @@ public class PathfinderAlgorithm {
             case originalPF:
                 edgesCount = originalPathfinder(graph, n, q, r, invertida);
                 break;
+            case binaryPF:
+                edgesCount = binaryPathfinder(graph, n, q, r, invertida);
+                break;
             case fastPF:
-                edgesCount = fastPathfinder(graph, n, r, invertida);
+                edgesCount = fastPathfinder(graph, n, q, r, invertida);
+                break;
+            case fastPFmodified:
+                edgesCount = fastPathfinderModified(graph, n, q, r, invertida);
                 break;
         }
         
