@@ -236,18 +236,13 @@ public final class PFTopComponent extends TopComponent {
         
         boolean column_calculated = PathfinderAlgorithm.checkColumn(graphModel.getEdgeTable(), algorithm, q, r);
         int calculate = 1;
-        
-        final Log log = new Log("/home/jesusjmma/Desktop/log_gephi.txt");
-        log.write("column_calculated: "+String.valueOf(column_calculated));
                 
         if (column_calculated){
             calculate = 0;
-            log.write("el frame este raro: "+(String.valueOf((Frame) SwingUtilities.windowForComponent(this))));
             OkCancelDialog popUpWindow = new OkCancelDialog((Frame) SwingUtilities.windowForComponent(this), true);
             popUpWindow.setLocationRelativeTo(null);
             popUpWindow.setVisible(true);
             calculate = popUpWindow.getReturnStatus();
-            log.write("calculate: "+String.valueOf(calculate));
         }
         
         if (calculate == 1){
@@ -297,11 +292,10 @@ public final class PFTopComponent extends TopComponent {
         
         int max_q = n-1;
         int actual_max_q = ((Integer) ((SpinnerNumberModel) jSpinner2.getModel()).getMaximum()).intValue();
-        System.out.print("actual_max_q = "+String.valueOf(actual_max_q));
         
         if (max_q != actual_max_q){
             int actual_value = ((Number) jSpinner2.getValue()).intValue();
-            jSpinner2.setModel(new javax.swing.SpinnerNumberModel(actual_value, 1, max_q, 1));
+            jSpinner2.setModel(new javax.swing.SpinnerNumberModel(Math.min(actual_value, max_q), 1, max_q, 1));
         }
     }//GEN-LAST:event_jSpinner2StateChanged
 
