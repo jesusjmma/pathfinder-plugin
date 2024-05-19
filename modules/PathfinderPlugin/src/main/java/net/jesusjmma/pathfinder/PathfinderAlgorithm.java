@@ -70,21 +70,23 @@ public class PathfinderAlgorithm {
     private static final Log log = new Log("/home/jesusjmma/Desktop/log_gephi.txt");
     
     static enum Algoritmo{
-        originalPF("Original Pathfinder", true, true),
-        binaryPF("Binary Pathfinder", true, true),
-        fastPF("Fast Pathfinder", false, true),
-        fastPFmodified("Fast Pathfinder Modified", true, true),
-        MSTPathfinderTheorical("MST-Pathfinder Theorical", false, false),
+        originalPF("Original Pathfinder", true, true, true),
+        binaryPF("Binary Pathfinder", true, true, true),
+        fastPF("Fast Pathfinder", true, false, true),
+        fastPFmodified("Fast Pathfinder Modified", true, true, true),
+        MSTPathfinderTheorical("MST-Pathfinder Theorical", false, false, false),
         //MSTPathfinderPractical("MST-Pathfinder Practical", false, false),
         ;
         
         private final String name;
-        private final boolean qValues;
+        private final boolean r_admisible;
+        private final boolean q_admisible;
         private final boolean directedOption;
         
-        private Algoritmo(final String text, final boolean q, final boolean directed){
+        private Algoritmo(final String text, final boolean r, final boolean q, final boolean directed){
             this.name = text;
-            this.qValues = q;
+            this.r_admisible = r;
+            this.q_admisible = q;
             this.directedOption = directed;
         }
         
@@ -93,8 +95,12 @@ public class PathfinderAlgorithm {
             return name;
         }
         
+        public boolean rAdmisible(){
+            return r_admisible;
+        }
+        
         public boolean qAdmisible(){
-            return qValues;
+            return q_admisible;
         }
         
         public boolean directedAdmisible(){

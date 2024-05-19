@@ -8,6 +8,7 @@ import java.awt.Frame;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import javax.accessibility.Accessible;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import net.jesusjmma.pathfinder.PathfinderAlgorithm.Algoritmo;
@@ -32,7 +33,7 @@ import org.openide.util.NbBundle.Messages;
 @TopComponent.Description(
         preferredID = "PFTopComponent",
         //iconBase="SET/PATH/TO/ICON/HERE",
-        persistenceType = TopComponent.PERSISTENCE_ALWAYS
+        persistenceType = TopComponent.PERSISTENCE_NEVER
 )
 @TopComponent.Registration(mode = "filtersmode", openAtStartup = true)
 @ActionID(category = "Window", id = "pathfinderwindow.PFTopComponent")
@@ -55,6 +56,112 @@ public final class PFTopComponent extends TopComponent {
         setName(bundle.getString("expression.top_panel.title"));
         setToolTipText(bundle.getString("expression.top_panel.tooltip"));
     }
+    
+    private boolean graphExists(){
+        GraphModel graphModel = Lookup.getDefault().lookup(GraphController.class).getGraphModel();
+
+        if (graphModel != null){
+            Graph graph = graphModel.getGraph();
+
+            if (graph != null){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private void reInitElement(Accessible a){
+        if (jComboBox1 == a){
+            Graph graph = Lookup.getDefault().lookup(GraphController.class).getGraphModel().getGraph();
+            List<String> algoritmos = new ArrayList<>();
+
+            for (Algoritmo alg : Algoritmo.values()){
+                if (!graph.isUndirected() && !alg.directedAdmisible()){
+                    continue;
+                }
+                algoritmos.add(alg.toString());
+            }
+            jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(algoritmos.toArray(String[]::new)));
+        }
+        else if (jCheckBox1 == a){
+            jCheckBox1.setSelected(true);
+        }
+        else if (jCheckBox2 == a){
+            jCheckBox2.setSelected(true);
+        }
+        else if (jCheckBox3 == a){
+            jCheckBox3.setSelected(false);
+        }
+        else if (jSpinner1 == a){
+            jSpinner1.setModel(new javax.swing.SpinnerNumberModel(((Number)jSpinner1.getValue()).intValue(), 1, 99, 1));
+        }
+        else if (jSpinner2 == a){
+            int n = Lookup.getDefault().lookup(GraphController.class).getGraphModel().getGraph().getNodeCount();
+            int max = Math.max(n-1, 1);
+            jSpinner2.setModel(new javax.swing.SpinnerNumberModel(((Number)jSpinner2.getValue()).intValue(), 1, max, 1));
+        }
+        else if (jButton1 == a){}
+    }
+    
+    private void reInitElements(){
+        if (jComboBox1.isEnabled() == false){
+            reInitElement(jCheckBox1);
+        }
+        if (jCheckBox2.isEnabled() == false){
+            reInitElement(jCheckBox2);
+        }
+        if (jCheckBox3.isEnabled() == false){
+            reInitElement(jCheckBox3);
+        }
+        if (jSpinner1.isEnabled() == false){
+            reInitElement(jSpinner1);
+        }
+        if (jSpinner2.isEnabled() == false){
+            reInitElement(jSpinner2);
+        }
+        if (jButton1.isEnabled() == false){
+            reInitElement(jButton1);
+        }
+    }
+    
+    private void reInitAll(){
+        if (jComboBox1.isEnabled() == false){
+            reInitElement(jComboBox1);
+        }
+        reInitElements();
+    }
+    
+    private void enableAll(){
+        if (graphExists()){
+            reInitAll();
+            jComboBox1.setEnabled(true);
+            jCheckBox1.setEnabled(true);
+            jCheckBox2.setEnabled(true);
+            jCheckBox3.setEnabled(true);
+            jButton1.setEnabled(true);
+        }
+        else{
+            disableAll();
+        }
+    }
+    
+    private void disableAll(){
+        if (!graphExists()){
+            jComboBox1.setEnabled(false);
+            jCheckBox1.setSelected(true);
+            jCheckBox1.setEnabled(false);
+            jCheckBox2.setSelected(true);
+            jCheckBox2.setEnabled(false);
+            jCheckBox3.setSelected(false);
+            jCheckBox3.setEnabled(false);
+            jSpinner1.setEnabled(false);
+            jSpinner2.setEnabled(false);
+            jButton1.setEnabled(false);
+        }
+        else{
+            enableAll();
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -76,6 +183,22 @@ public final class PFTopComponent extends TopComponent {
         jCheckBox2 = new javax.swing.JCheckBox();
         jCheckBox3 = new javax.swing.JCheckBox();
 
+        setMinimumSize(new java.awt.Dimension(200, 300));
+        setName(""); // NOI18N
+        addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                formFocusGained(evt);
+            }
+        });
+        addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                formMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                formMouseEntered(evt);
+            }
+        });
+
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "Seleccione el algoritmo:");
 
         org.openide.awt.Mnemonics.setLocalizedText(jButton1, "Run");
@@ -86,13 +209,24 @@ public final class PFTopComponent extends TopComponent {
         });
 
         List<String> algoritmos = new ArrayList<String>();
-        for (Algoritmo alg : Algoritmo.values()){
-            algoritmos.add(alg.toString());
+        if (graphExists()){
+            Graph graph = Lookup.getDefault().lookup(GraphController.class).getGraphModel().getGraph();
+            boolean undirected = graph.isUndirected();
+            if (undirected){
+                //To do
+            }
+
+            for (Algoritmo alg : Algoritmo.values()){
+                if (!undirected && !alg.directedAdmisible()){
+                    continue;
+                }
+                algoritmos.add(alg.toString());
+            }
         }
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<String>(algoritmos.toArray(new String[0])));
         jComboBox1.setMinimumSize(new java.awt.Dimension(40, 24));
         jComboBox1.setName(""); // NOI18N
-        jComboBox1.setPreferredSize(new java.awt.Dimension(70, 24));
+        jComboBox1.setPreferredSize(new java.awt.Dimension(40, 24));
         jComboBox1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jComboBox1ActionPerformed(evt);
@@ -134,7 +268,7 @@ public final class PFTopComponent extends TopComponent {
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox3, "Tomar pesos de los ejes como grados de relación");
+        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox3, "<html><p>Tomar pesos de los ejes como grados de relación</p></html>");
         jCheckBox3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jCheckBox3ActionPerformed(evt);
@@ -174,7 +308,7 @@ public final class PFTopComponent extends TopComponent {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(14, 14, 14)
                         .addComponent(jCheckBox3)))
-                .addContainerGap(17, Short.MAX_VALUE))
+                .addGap(28, 28, 28))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -196,16 +330,63 @@ public final class PFTopComponent extends TopComponent {
                     .addComponent(jLabel4)
                     .addComponent(jCheckBox2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jCheckBox3)
+                .addComponent(jCheckBox3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(15, 15, 15)
                 .addComponent(jButton1)
-                .addContainerGap(64, Short.MAX_VALUE))
+                .addContainerGap(65, Short.MAX_VALUE))
         );
+
+        if(!graphExists()){
+            jButton1.setEnabled(false);
+        }
+        else{
+            jButton1.setEnabled(true);
+        }
+        if(!graphExists()){
+            jComboBox1.setEnabled(false);
+        }
+        else{
+            jComboBox1.setEnabled(true);
+        }
+        if(!graphExists()){
+            jSpinner1.setEnabled(false);
+        }
+        else{
+            jSpinner1.setEnabled(true);
+        }
+        if(!graphExists()){
+            jCheckBox1.setEnabled(false);
+        }
+        else{
+            jCheckBox1.setEnabled(true);
+        }
+        if(!graphExists()){
+            jSpinner2.setEnabled(false);
+        }
+        else{
+            jSpinner2.setEnabled(true);
+        }
+        if(!graphExists()){
+            jCheckBox2.setEnabled(false);
+        }
+        else{
+            jCheckBox2.setEnabled(true);
+        }
+        if(!graphExists()){
+            jCheckBox3.setEnabled(false);
+        }
+        else{
+            jCheckBox3.setEnabled(true);
+        }
     }// </editor-fold>//GEN-END:initComponents
 
     
     // BOTÓN PARA EJECUTAR
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        if (!graphExists()){
+            disableAll();
+            return;
+        }
         
         GraphModel graphModel = Lookup.getDefault().lookup(GraphController.class).getGraphModel();
         Graph graph = graphModel.getGraph();
@@ -251,21 +432,37 @@ public final class PFTopComponent extends TopComponent {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
+        if (!graphExists()){
+            disableAll();
+            return;
+        }
+        
         if (jCheckBox1.isSelected()){
             jSpinner1.setEnabled(false);
         }
         else{
-            jSpinner1.setEnabled(true);
+            Algoritmo algorithm = Algoritmo.search(jComboBox1.getSelectedItem().toString());
+            if (!algorithm.rAdmisible()){
+                jCheckBox1.setSelected(true);
+                jSpinner1.setEnabled(false);
+            }
+            else{
+                jSpinner1.setEnabled(true);
+            }
         }
     }//GEN-LAST:event_jCheckBox1ActionPerformed
 
     private void jCheckBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox2ActionPerformed
+        if (!graphExists()){
+            disableAll();
+            return;
+        }
+        
         if (jCheckBox2.isSelected()){
             jSpinner2.setEnabled(false);
         }
         else{
-            String selection = jComboBox1.getSelectedItem().toString();
-            Algoritmo algorithm = Algoritmo.search(selection);
+            Algoritmo algorithm = Algoritmo.search(jComboBox1.getSelectedItem().toString());
             if (!algorithm.qAdmisible()){
                 jCheckBox2.setSelected(true);
                 jSpinner2.setEnabled(false);
@@ -277,6 +474,11 @@ public final class PFTopComponent extends TopComponent {
     }//GEN-LAST:event_jCheckBox2ActionPerformed
 
     private void jSpinner2StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinner2StateChanged
+        if (!graphExists()){
+            disableAll();
+            return;
+        }
+        
         GraphModel graphModel = Lookup.getDefault().lookup(GraphController.class).getGraphModel();
         if (graphModel == null){
             jCheckBox2.setSelected(true);
@@ -300,18 +502,48 @@ public final class PFTopComponent extends TopComponent {
     }//GEN-LAST:event_jSpinner2StateChanged
 
     private void jCheckBox3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox3ActionPerformed
-        // TODO add your handling code here:
+        if (!graphExists()){
+            disableAll();
+            return;
+        }
     }//GEN-LAST:event_jCheckBox3ActionPerformed
 
     private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
+        if (!graphExists()){
+            disableAll();
+            return;
+        }
+        
         String selection = jComboBox1.getSelectedItem().toString();
         Algoritmo algorithm = Algoritmo.search(selection);
+        
+        if (!algorithm.rAdmisible()){
+            jCheckBox1.setSelected(true);
+            jSpinner1.setEnabled(false);
+        }
         
         if (!algorithm.qAdmisible()){
             jCheckBox2.setSelected(true);
             jSpinner2.setEnabled(false);
         }
     }//GEN-LAST:event_jComboBox1ActionPerformed
+
+    private void formFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_formFocusGained
+
+    }//GEN-LAST:event_formFocusGained
+
+    private void formMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseClicked
+        if(graphExists()){
+            enableAll();
+        }
+        if(!graphExists()){
+            disableAll();
+        }
+    }//GEN-LAST:event_formMouseClicked
+
+    private void formMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseEntered
+        formMouseClicked(evt);
+    }//GEN-LAST:event_formMouseEntered
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
