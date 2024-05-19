@@ -67,7 +67,7 @@ class Cluster{
 
 public class PathfinderAlgorithm {
     
-    private static final Log log = new Log("/home/jesusjmma/Desktop/log_gephi.txt");
+    private static final Log log = new Log("./log_gephi.txt");
     
     static enum Algoritmo{
         originalPF("Original Pathfinder", true, true, true),
