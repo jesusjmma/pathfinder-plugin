@@ -2,6 +2,8 @@ package net.jesusjmma.pathfinder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import org.gephi.graph.api.Column;
 import org.gephi.graph.api.Edge;
@@ -14,6 +16,56 @@ import org.gephi.graph.api.Table;
  *
  * @author jesusjmma
  */
+
+class Cluster{
+    static HashMap<Cluster, List<Cluster>> map = new HashMap<>();
+    private static int next_id = 0;
+    final private int id;
+    Cluster representative;
+
+    Cluster(){
+        this.representative = this;
+        this.id = getNextId();
+        addToMap();
+    }
+
+    private synchronized static int getNextId() {
+        return next_id++;
+    }
+    
+    private void addToMap(){
+        List<Cluster> clusters = new ArrayList<>();
+        clusters.add(this);
+        map.put(this, clusters);
+    }
+    
+    int getId(){
+        return id;
+    }
+
+    void merge(Cluster c){
+        List<Cluster> this_clusters = map.get(this);
+        List<Cluster> c_clusters = map.get(c);
+        
+        if (this_clusters.size() < c_clusters.size()){
+            c_clusters.addAll(this_clusters);
+            for(Cluster c2 : this_clusters){
+                c2.representative = c.representative;
+                map.put(c2, c_clusters);
+            }
+        }
+        else{
+            this_clusters.addAll(c_clusters);
+            for(Cluster c2 : c_clusters){
+                c2.representative = this.representative;
+                map.put(c2, this_clusters);
+            }
+        }
+        
+        c.representative = this.representative;
+    }
+}
+
 public class PathfinderAlgorithm {
     
     private static final Log log = new Log("/home/jesusjmma/Desktop/log_gephi.txt");
@@ -23,11 +75,8 @@ public class PathfinderAlgorithm {
         binaryPF("Binary Pathfinder", true, true),
         fastPF("Fast Pathfinder", false, true),
         fastPFmodified("Fast Pathfinder Modified", true, true),
+        MSTPathfinderTheorical("MST-Pathfinder Theorical", false, false),
         //MSTPathfinderPractical("MST-Pathfinder Practical", false, false),
-        //MSTPathfinderTheorical("MST-Pathfinder Theorical", false, false),
-        //PF1("Nombre del algoritmo PF2", true, true),
-        //PF2("Nombre del algoritmo PF2", true, true),
-        //Termina con un punto y coma
         ;
         
         private final String name;
@@ -62,7 +111,7 @@ public class PathfinderAlgorithm {
             return Algoritmo.fastPF;
         }
     }
-    ///*
+    /*
     private void printMatrix (double[][] matrix){
         int[] maxSizes = new int[matrix[0].length];
         for (int col = 0; col < matrix[0].length; col++) {
@@ -169,7 +218,7 @@ public class PathfinderAlgorithm {
         return d;
     }
     
-    //////º////////////////
+    ///////////////////////
     //    ALGORITMOS    //
     //////////////////////
     
@@ -464,11 +513,58 @@ public class PathfinderAlgorithm {
         return pfEdgesCount;
     }
     
-    private int MSTPathfinderPractical (Graph G, int n, int q, int r, boolean invertida){
-        return -1;
+    private int MSTPathfinderTheorical (Graph G, int n, int q, int r, boolean invertida){
+        List<Edge> T = new ArrayList<>();
+        List<Node> nodes = new ArrayList<>(Arrays.asList(G.getNodes().toArray()));
+        
+        HashMap<Node, Cluster> map = new HashMap<>();
+        
+        for (int i=0; i<nodes.size(); i++){
+            Cluster cluster = new Cluster();
+            map.put(nodes.get(i), cluster);
+        }
+        
+        Comparator<Edge> edges_comparator = (Edge e1, Edge e2) -> Double.compare(e1.getWeight(), e2.getWeight());
+        
+        List<Edge> F = new ArrayList<>(Arrays.asList(G.getEdges().toArray()));
+        if (invertida){
+            F.sort(edges_comparator.reversed());
+        }
+        else{
+            F.sort(edges_comparator);
+        }
+        
+        for (int i=0; i < F.size();) {
+            List<Cluster[]> H = new ArrayList<>();
+            double actualWeight = F.get(i).getWeight();
+            while (i<F.size() && actualWeight==F.get(i).getWeight()){
+                Cluster c1 = map.get(F.get(i).getSource());
+                Cluster c2 = map.get(F.get(i).getTarget());
+                
+                if(c1.representative != c2.representative){
+                    T.add(F.get(i));
+                    H.add(new Cluster[]{c1,c2});
+                }
+                i++;
+            }
+            for (Cluster[] c: H){
+                c[0].merge(c[1]);
+            }
+        }
+        
+        int pfEdgesCount = 0;
+        Table table = T.get(0).getTable();
+        
+        String column_id = createColumn(table, Algoritmo.MSTPathfinderTheorical, n-1, 0);
+        
+        for (Edge edge: T) {
+            edge.setAttribute(column_id, true);
+            pfEdgesCount++;
+        }
+        return pfEdgesCount;
     }
     
-    private int MSTPathfinderTheorical (Graph G, int n, int q, int r, boolean invertida){
+    private int MSTPathfinderPractical (Graph G, int n, int q, int r, boolean invertida){
         return -1;
     }
     
@@ -481,6 +577,9 @@ public class PathfinderAlgorithm {
         int edgesCount=-1;
         
         int n = graph.getNodeCount();
+        int edges = graph.getEdgeCount();
+        
+        long startTime = System.nanoTime();
         
         switch(algorithm){
             case originalPF:
@@ -495,9 +594,26 @@ public class PathfinderAlgorithm {
             case fastPFmodified:
                 edgesCount = fastPathfinderModified(graph, n, q, r, invertida);
                 break;
+            case MSTPathfinderTheorical:
+                edgesCount = MSTPathfinderTheorical(graph, n, q, r, invertida);
+                break;
         }
         
-        log.write("Número de aristas con "+algorithm.name+": ", edgesCount);
+        long endTime = System.nanoTime();
+        
+        long duration_ns = endTime-startTime;
+        double duration_s = duration_ns / 1000000000.0;
+        
+        log.write("==========================================");
+        log.write("=== ALGORITMO "+algorithm.name+" ===");
+        log.write("Tiempo (ns): "+String.valueOf(duration_ns));
+        log.write("Tiempo (s): "+String.valueOf(duration_s));
+        log.write("Nodos iniciales: ", n);
+        log.write("q: ", q);
+        log.write("r: ", r);
+        log.write("Aristas iniciales: ", edges);
+        log.write("Aristas podadas: ", edges-edgesCount);
+        log.write("Aristas finales: ", edgesCount);
         return true;
     }
 }
