@@ -21,7 +21,6 @@ import org.openide.awt.ActionReference;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
-import org.openide.util.NbBundle.Messages;
 
 /**
  * Top component which displays something.
@@ -39,22 +38,17 @@ import org.openide.util.NbBundle.Messages;
 @ActionID(category = "Window", id = "pathfinderwindow.PFTopComponent")
 @ActionReference(path = "Menu/Window", position = 3000)
 @TopComponent.OpenActionRegistration(
-        displayName = "#expression.gephi_menu_item.title",
+        displayName = "#PF.Gephi.Menu.Item.Title",
         preferredID = "PFTopComponent"
 )
-@Messages({
-    "CTL_PFAction=PF",
-    "CTL_PFTopComponent=PF Window",
-    "HINT_PFTopComponent=This is a PF window"
-})
 public final class PFTopComponent extends TopComponent {
     
     private static final ResourceBundle bundle = NbBundle.getBundle(PFTopComponent.class);
     
     public PFTopComponent() {
         initComponents();
-        setName(bundle.getString("expression.top_panel.title"));
-        setToolTipText(bundle.getString("expression.top_panel.tooltip"));
+        setName(bundle.getString("PF.TopPanel.Title"));
+        setToolTipText(bundle.getString("PF.TopPanel.ToolTip"));
     }
     
     private boolean graphExists(){
@@ -172,9 +166,9 @@ public final class PFTopComponent extends TopComponent {
     private void initComponents() {
 
         jLabel1 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
         jComboBox1 = new javax.swing.JComboBox<>();
         jSpinner1 = new javax.swing.JSpinner();
+        jButton1 = new javax.swing.JButton();
         jCheckBox1 = new javax.swing.JCheckBox();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
@@ -199,14 +193,7 @@ public final class PFTopComponent extends TopComponent {
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "Seleccione el algoritmo:");
-
-        org.openide.awt.Mnemonics.setLocalizedText(jButton1, "Run");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(PFTopComponent.class, "PF.TopPanel.jComboBox1.Title")); // NOI18N
 
         List<String> algoritmos = new ArrayList<String>();
         if (graphExists()){
@@ -237,6 +224,13 @@ public final class PFTopComponent extends TopComponent {
         jSpinner1.setEnabled(false);
         jSpinner1.setName(""); // NOI18N
 
+        org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(PFTopComponent.class, "PF.TopPanel.RunButton.Text")); // NOI18N
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         jCheckBox1.setSelected(true);
         org.openide.awt.Mnemonics.setLocalizedText(jCheckBox1, "∞");
         jCheckBox1.addActionListener(new java.awt.event.ActionListener() {
@@ -245,7 +239,7 @@ public final class PFTopComponent extends TopComponent {
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, "Valor de las variables:");
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(PFTopComponent.class, "PF.TopPanel.VariablesSelectors.Title")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel3, "r");
 
@@ -268,7 +262,7 @@ public final class PFTopComponent extends TopComponent {
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox3, "<html><p>Tomar pesos de los ejes como grados de relación</p></html>");
+        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox3, org.openide.util.NbBundle.getMessage(PFTopComponent.class, "PF.TopPanel.jCheckBox3.Text")); // NOI18N
         jCheckBox3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jCheckBox3ActionPerformed(evt);
@@ -283,8 +277,8 @@ public final class PFTopComponent extends TopComponent {
                 .addGap(15, 15, 15)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addComponent(jComboBox1, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel2))
                 .addGap(15, 15, 15))
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -314,11 +308,11 @@ public final class PFTopComponent extends TopComponent {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(24, 24, 24)
-                .addComponent(jLabel1)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel2)
+                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -337,12 +331,6 @@ public final class PFTopComponent extends TopComponent {
         );
 
         if(!graphExists()){
-            jButton1.setEnabled(false);
-        }
-        else{
-            jButton1.setEnabled(true);
-        }
-        if(!graphExists()){
             jComboBox1.setEnabled(false);
         }
         else{
@@ -353,6 +341,12 @@ public final class PFTopComponent extends TopComponent {
         }
         else{
             jSpinner1.setEnabled(true);
+        }
+        if(!graphExists()){
+            jButton1.setEnabled(false);
+        }
+        else{
+            jButton1.setEnabled(true);
         }
         if(!graphExists()){
             jCheckBox1.setEnabled(false);
