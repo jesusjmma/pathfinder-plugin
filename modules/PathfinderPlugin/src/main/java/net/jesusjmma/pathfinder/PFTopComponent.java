@@ -32,7 +32,7 @@ import org.openide.util.NbBundle.Messages;
 )
 @TopComponent.Description(
         preferredID = "PFTopComponent",
-        //iconBase="SET/PATH/TO/ICON/HERE",
+        iconBase="net/jesusjmma/pathfinder/icon.png",
         persistenceType = TopComponent.PERSISTENCE_NEVER
 )
 @TopComponent.Registration(mode = "filtersmode", openAtStartup = true)
