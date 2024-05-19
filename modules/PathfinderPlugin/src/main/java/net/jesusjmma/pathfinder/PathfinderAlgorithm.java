@@ -4,13 +4,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gephi.graph.api.Column;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.Node;
 import org.gephi.graph.api.Origin;
 import org.gephi.graph.api.Table;
+import org.openide.util.Pair;
 
 /**
  *
@@ -18,51 +22,46 @@ import org.gephi.graph.api.Table;
  */
 
 class Cluster{
-    static HashMap<Cluster, List<Cluster>> map = new HashMap<>();
-    private static int next_id = 0;
-    final private int id;
-    Cluster representative;
+    private static final ConcurrentHashMap<Cluster, HashSet<Cluster>> map = new ConcurrentHashMap<>();
+    private Cluster representative;
 
     Cluster(){
         this.representative = this;
-        this.id = getNextId();
-        addToMap();
-    }
-
-    private synchronized static int getNextId() {
-        return next_id++;
-    }
-    
-    private void addToMap(){
-        List<Cluster> clusters = new ArrayList<>();
+        HashSet<Cluster> clusters = new HashSet<>();
         clusters.add(this);
         map.put(this, clusters);
     }
     
-    int getId(){
-        return id;
+    Cluster findRepresentative() {
+        if (this.representative != this) {
+            this.representative = this.representative.findRepresentative();
+        }
+        return this.representative;
     }
 
     void merge(Cluster c){
-        List<Cluster> this_clusters = map.get(this);
-        List<Cluster> c_clusters = map.get(c);
+        Cluster rep1 = this.findRepresentative();
+        Cluster rep2 = c.findRepresentative();
         
-        if (this_clusters.size() < c_clusters.size()){
-            c_clusters.addAll(this_clusters);
-            for(Cluster c2 : this_clusters){
-                c2.representative = c.representative;
-                map.put(c2, c_clusters);
+        HashSet<Cluster> set1 = map.get(rep1);
+        HashSet<Cluster> set2 = map.get(rep2);
+        
+        if (set1.size() < set2.size()){
+            set2.addAll(set1);
+            for(Cluster cluster : set1){
+                cluster.representative = rep2;
+                map.remove(cluster);
             }
+            map.put(rep2, set2);
         }
         else{
-            this_clusters.addAll(c_clusters);
-            for(Cluster c2 : c_clusters){
-                c2.representative = this.representative;
-                map.put(c2, this_clusters);
+            set1.addAll(set2);
+            for(Cluster cluster : set2){
+                cluster.representative = rep1;
+                map.remove(cluster);
             }
+            map.put(rep1, set1);
         }
-        
-        c.representative = this.representative;
     }
 }
 
@@ -517,7 +516,7 @@ public class PathfinderAlgorithm {
         List<Edge> T = new ArrayList<>();
         List<Node> nodes = new ArrayList<>(Arrays.asList(G.getNodes().toArray()));
         
-        HashMap<Node, Cluster> map = new HashMap<>();
+        ConcurrentHashMap<Node, Cluster> map = new ConcurrentHashMap<>();
         
         for (int i=0; i<nodes.size(); i++){
             Cluster cluster = new Cluster();
@@ -526,7 +525,7 @@ public class PathfinderAlgorithm {
         
         Comparator<Edge> edges_comparator = (Edge e1, Edge e2) -> Double.compare(e1.getWeight(), e2.getWeight());
         
-        List<Edge> F = new ArrayList<>(Arrays.asList(G.getEdges().toArray()));
+        ArrayList<Edge> F = new ArrayList<>(Arrays.asList(G.getEdges().toArray()));
         if (invertida){
             F.sort(edges_comparator.reversed());
         }
@@ -534,22 +533,29 @@ public class PathfinderAlgorithm {
             F.sort(edges_comparator);
         }
         
-        for (int i=0; i < F.size();) {
-            List<Cluster[]> H = new ArrayList<>();
-            double actualWeight = F.get(i).getWeight();
-            while (i<F.size() && actualWeight==F.get(i).getWeight()){
-                Cluster c1 = map.get(F.get(i).getSource());
-                Cluster c2 = map.get(F.get(i).getTarget());
+        int i=0;
+        while (i < F.size()) {
+            ConcurrentHashMap<Cluster,Cluster> H = new ConcurrentHashMap<>();
+            final double actualWeight = F.get(i).getWeight();
+            Edge edge;
+            while (i<F.size() && actualWeight==(edge = F.get(i)).getWeight()){
+                Node n1 = edge.getSource();
+                Node n2 = edge.getTarget();
+                Cluster c1 = map.get(n1);
+                Cluster c2 = map.get(n2);
                 
-                if(c1.representative != c2.representative){
-                    T.add(F.get(i));
-                    H.add(new Cluster[]{c1,c2});
+                if(c1.findRepresentative() != c2.findRepresentative()){
+                    T.add(edge);
+                    H.put(c1,c2);
                 }
                 i++;
             }
-            for (Cluster[] c: H){
-                c[0].merge(c[1]);
+            H.forEach((Cluster k, Cluster v) -> k.merge(v));
+            /*
+            for (Pair<Cluster, Cluster> c: H){
+                c.first().merge(c.second());
             }
+            //*/
         }
         
         int pfEdgesCount = 0;
